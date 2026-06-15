@@ -1,41 +1,524 @@
-# Presupuesto de Casa 🌿
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Presupuesto de Casa</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --pearl:#f4efe6; --pearl-2:#ece4d6; --ink:#33302a; --ink-soft:#6b655a;
+    --rose:#c08a82; --rose-deep:#a76b62; --hedge:#5a6b4f; --hedge-deep:#3f4d37;
+    --spice:#c98a3a; --wood:#b08c5f; --slate:#6a7b86;
+    --line:rgba(51,48,42,.12); --card:#fbf8f1;
+    --shadow:0 1px 2px rgba(51,48,42,.06),0 8px 24px rgba(51,48,42,.07);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Manrope',sans-serif;background:
+      radial-gradient(1200px 600px at 100% -10%, rgba(201,138,58,.10), transparent 60%),
+      radial-gradient(900px 500px at -10% 10%, rgba(90,107,79,.10), transparent 55%),
+      var(--pearl);color:var(--ink);line-height:1.5;min-height:100vh;padding:22px 16px 120px}
+  .wrap{max-width:780px;margin:0 auto}
+  header{margin-bottom:22px}
+  .eyebrow{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--rose-deep);font-weight:600}
+  h1{font-family:'Fraunces',serif;font-weight:500;font-size:34px;line-height:1.05;margin-top:6px;letter-spacing:-.01em}
+  h1 em{font-style:italic;color:var(--hedge-deep)}
+  .sub{color:var(--ink-soft);font-size:14px;margin-top:8px;max-width:52ch}
 
-Tracker compartido de compras de casa (muebles, electrodomésticos, electrónica, decoración y reformas), organizado por fases, con descuentos, modo selección para el día de compra, comparativas de presupuestos y datos en la nube para usarlo entre dos personas.
+  .summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:22px 0 14px}
+  .scard{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 14px 12px;box-shadow:var(--shadow)}
+  .scard .lab{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);font-weight:600}
+  .scard .val{font-family:'Fraunces',serif;font-size:23px;margin-top:6px;letter-spacing:-.01em}
+  .scard.tot{border-top:3px solid var(--rose)} .scard.tot .val{color:var(--rose-deep)}
+  .scard.buy{border-top:3px solid var(--hedge)}
+  .scard.pend{border-top:3px solid var(--spice)}
 
-## Puesta en marcha (una sola vez)
+  .budget{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:var(--shadow);margin-bottom:18px}
+  .budget-top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+  .budget-top label{font-size:13px;color:var(--ink-soft);font-weight:600}
+  .budget-input{display:flex;align-items:center;gap:6px}
+  .budget-input input{width:130px;border:1px solid var(--line);background:var(--pearl);border-radius:10px;padding:8px 10px;font-family:'Manrope';font-size:15px;font-weight:700;color:var(--ink);text-align:right}
+  .budget-input span{color:var(--ink-soft);font-weight:600}
+  .bar{height:10px;border-radius:99px;background:var(--pearl-2);margin-top:14px;overflow:hidden;position:relative}
+  .bar .fb{height:100%;background:var(--hedge);position:absolute;left:0;top:0;transition:.4s ease}
+  .bar .fp{height:100%;background:var(--spice);opacity:.55;position:absolute;top:0;transition:.4s ease}
+  .bar .fe{height:100%;position:absolute;top:0;transition:.4s ease;
+    background:repeating-linear-gradient(45deg,rgba(201,138,58,.5),rgba(201,138,58,.5) 4px,transparent 4px,transparent 8px)}
+  .bar-meta{display:flex;justify-content:space-between;font-size:12px;color:var(--ink-soft);margin-top:8px;flex-wrap:wrap;gap:6px}
+  .bar-meta b{color:var(--ink)} .over{color:var(--rose-deep);font-weight:700}
+  .est-note{color:var(--spice);font-weight:700} .save-note{color:var(--hedge-deep);font-weight:700}
 
-### 1. Crear la tabla en Supabase
-En tu proyecto de Supabase → **SQL Editor** → New query → pega el contenido de [`supabase-setup.sql`](./supabase-setup.sql) y pulsa **Run**.
+  .add{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;box-shadow:var(--shadow);margin-bottom:16px}
+  .add h2{font-family:'Fraunces',serif;font-weight:500;font-size:17px;margin-bottom:12px}
+  .modeseg{display:flex;background:var(--pearl);border:1px solid var(--line);border-radius:10px;padding:3px;gap:3px;margin-bottom:12px}
+  .modeseg button{flex:1;border:none;background:transparent;border-radius:8px;padding:8px;font-family:'Manrope';font-size:13px;font-weight:700;color:var(--ink-soft);cursor:pointer}
+  .modeseg button.on{background:var(--ink);color:var(--pearl)}
+  .grid{display:grid;gap:10px}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .row3{display:grid;grid-template-columns:1fr .6fr .6fr;gap:10px}
+  .field label{display:block;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-soft);font-weight:600;margin-bottom:5px}
+  .field input,.field select{width:100%;border:1px solid var(--line);background:var(--pearl);border-radius:10px;padding:10px 11px;font-family:'Manrope';font-size:14px;color:var(--ink)}
+  .field input:focus,.field select:focus{outline:none;border-color:var(--hedge)}
+  .btn-add{margin-top:12px;width:100%;border:none;background:var(--ink);color:var(--pearl);border-radius:12px;padding:13px;font-family:'Manrope';font-size:15px;font-weight:700;cursor:pointer;transition:.2s}
+  .btn-add:hover{background:#222019} .btn-add:active{transform:scale(.99)}
 
-### 2. Conseguir tus dos claves
-En Supabase → **Project Settings → API**:
-- **Project URL** (ej. `https://abcd1234.supabase.co`)
-- Clave **anon public** (la pública, *no* la `service_role`)
+  .toolbar{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+  .tbtn{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:99px;padding:9px 15px;font-family:'Manrope';font-size:13px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:7px;box-shadow:var(--shadow);transition:.2s}
+  .tbtn:hover{border-color:var(--spice)} .tbtn.on{background:var(--spice);color:#fff;border-color:var(--spice)}
+  .hint{font-size:12.5px;color:var(--spice);font-weight:600}
+  .cloud{font-size:11.5px;font-weight:700;color:var(--ink-soft);border:1px solid var(--line);border-radius:99px;padding:6px 12px;background:var(--card)}
+  .cloud.ok{color:var(--hedge-deep);border-color:rgba(90,107,79,.45)}
+  .cloud.warn{color:var(--rose-deep);border-color:rgba(167,107,98,.45)}
 
-### 3. Configurar `index.html`
-Arriba del `<script>` hay tres líneas. Rellena las dos primeras:
+  .phase{margin-bottom:20px}
+  .phase-head{display:flex;align-items:center;gap:10px;padding:0 4px 9px;border-bottom:1px solid var(--line);margin-bottom:10px}
+  .pbadge{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;font-family:'Fraunces',serif;font-weight:600;font-size:15px;color:#fff;flex-shrink:0}
+  .phase-head h3{font-family:'Fraunces',serif;font-weight:500;font-size:19px;flex:1}
+  .phase-head .pt{text-align:right;line-height:1.25}
+  .phase-head .pt .a{font-weight:700;font-size:15px}
+  .phase-head .pt .b{font-size:11px;color:var(--ink-soft)}
 
-```js
-const SUPABASE_URL = "https://ouaswrvmdtdrhgpjjqkj.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im91YXN3cnZtZHRkcmhncGpqcWtqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg5MjY3MzYsImV4cCI6MjA5NDUwMjczNn0.V0ITQYx6e8qvLro85C51akG0y7dcwCECNS2zHbJWqJw";
-const BOARD_ID = "casa-3210u-d93uc-32epp";
-```
+  .item{display:flex;align-items:center;gap:11px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:11px 13px;margin-bottom:8px;box-shadow:var(--shadow);transition:opacity .2s,border-color .15s,background .15s}
+  .item.bought{opacity:.62}
+  .selmode .item{cursor:pointer}
+  .item.sel{border-color:var(--spice);border-width:2px;background:#fbf3e6;padding:10px 12px}
+  .chk{width:24px;height:24px;border-radius:7px;border:2px solid var(--line);background:var(--pearl);flex-shrink:0;cursor:pointer;display:grid;place-items:center;transition:.15s}
+  .chk:hover{border-color:var(--hedge)} .chk.on{background:var(--hedge);border-color:var(--hedge)}
+  .chk.on::after{content:"✓";color:#fff;font-size:14px;font-weight:800}
+  .item .info{flex:1;min-width:0}
+  .item .nm{font-weight:600;font-size:15px;line-height:1.25}
+  .item.bought .nm{text-decoration:line-through;text-decoration-color:var(--ink-soft)}
+  .item .meta{display:flex;align-items:center;gap:8px;margin-top:5px;flex-wrap:wrap}
+  .tag{font-size:10.5px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;padding:2px 7px;border-radius:99px;color:#fff}
+  .qty{font-size:12px;color:var(--ink-soft)}
+  .disc-wrap{display:inline-flex;align-items:center;gap:3px;font-size:11.5px;color:var(--ink-soft);font-weight:600}
+  .disc{width:46px;border:1px solid var(--line);background:var(--pearl);border-radius:7px;padding:3px 6px;font-family:'Manrope';font-size:12px;font-weight:700;color:var(--rose-deep);text-align:right}
+  .disc:focus{outline:none;border-color:var(--rose)}
+  .item .price{font-family:'Fraunces',serif;font-size:17px;font-weight:500;white-space:nowrap;text-align:right;line-height:1.15}
+  .item .price .pvp{display:block;font-family:'Manrope';font-size:11px;font-weight:600;color:var(--ink-soft);text-decoration:line-through}
+  .icon{border:none;background:transparent;width:30px;height:30px;border-radius:8px;cursor:pointer;color:var(--ink-soft);font-size:14px;display:grid;place-items:center;flex-shrink:0}
+  .icon:hover{background:var(--pearl-2);color:var(--ink)}
 
-### 4. Publicar en GitHub Pages
-Sube `index.html` al repositorio y activa Pages en
-**Settings → Pages → Branch: `main` / root**.
-La URL será `https://TU-USUARIO.github.io/TU-REPO/`.
+  /* comparativa */
+  .comp{border:2px dashed var(--spice);border-radius:14px;padding:12px;background:rgba(201,138,58,.06);margin-bottom:8px}
+  .comp-head{display:flex;align-items:center;gap:9px;margin-bottom:6px}
+  .comp-head .ic{width:26px;height:26px;border-radius:8px;background:var(--spice);color:#fff;display:grid;place-items:center;font-size:14px;flex-shrink:0}
+  .comp-name{flex:1;border:none;background:transparent;font-family:'Manrope';font-weight:700;font-size:14.5px;color:var(--ink);min-width:0}
+  .comp-name:focus{outline:none;border-bottom:1px solid var(--spice)}
+  .comp-head .st{font-size:10px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--spice);white-space:nowrap}
+  .comp-tags{margin-bottom:9px}
+  .prov{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--ink-soft);background:var(--card);border:1px solid var(--line);border-radius:9px;padding:7px 10px;margin-bottom:10px;gap:8px}
+  .prov input{width:96px;border:1px solid var(--line);background:var(--pearl);border-radius:8px;padding:5px 8px;font-family:'Manrope';font-weight:700;font-size:13px;color:var(--ink);text-align:right}
+  .quote{display:flex;align-items:flex-start;gap:9px;padding:10px 0;border-top:1px solid var(--line)}
+  .quote.chosen{background:rgba(90,107,79,.08);border-radius:8px;padding:10px 8px}
+  .quote.dim{opacity:.5}
+  .radio{width:18px;height:18px;border-radius:99px;border:2px solid var(--ink-soft);flex-shrink:0;cursor:pointer;transition:.15s;position:relative;margin-top:3px}
+  .radio.on{border-color:var(--hedge)} .radio.on::after{content:"";position:absolute;inset:3px;border-radius:99px;background:var(--hedge)}
+  .qn{flex:1;display:flex;flex-direction:column;gap:5px;min-width:0}
+  .qn input{border:1px solid var(--line);background:var(--card);border-radius:8px;padding:6px 8px;font-family:'Manrope';font-size:13px;color:var(--ink);width:100%}
+  .qn input:focus{outline:none;border-color:var(--hedge)}
+  .qwho{font-weight:700}
+  .qrow{display:flex;align-items:center;gap:5px}
+  .qrow input{width:80px;text-align:right;font-weight:700}
+  .qrow .pct{width:56px;color:var(--rose-deep)}
+  .qrow span{font-size:12px;color:var(--ink-soft)}
+  .qright{display:flex;flex-direction:column;align-items:flex-end;gap:8px;flex-shrink:0}
+  .qfinal{font-family:'Fraunces',serif;font-size:15px;white-space:nowrap}
+  .addq{border:1px dashed var(--line);background:transparent;color:var(--ink-soft);border-radius:9px;padding:9px;font-family:'Manrope';font-size:12.5px;font-weight:700;cursor:pointer;width:100%;margin-top:6px}
+  .addq:hover{border-color:var(--spice);color:var(--spice)}
+  .buyrow{display:flex;align-items:center;gap:8px;margin-top:11px;padding-top:10px;border-top:1px solid var(--line);font-size:13px;font-weight:600;color:var(--ink-soft)}
 
-## Uso
+  .empty{text-align:center;color:var(--ink-soft);font-size:14px;padding:30px 10px;font-style:italic}
+  footer{text-align:center;color:var(--ink-soft);font-size:12px;margin-top:28px}
 
-- **Añadir**: artículo normal o *comparativa* (varios presupuestos entre los que decides).
-- **Fases**: Fase 1 = lo más prioritario.
-- **Dto. %**: PVP tachado vs. precio real que pagas.
-- **Check verde**: comprado de verdad (distinto de estar presupuestado).
-- **🛒 Modo selección**: marca lo que vas a comprar hoy y mira la suma al vuelo.
-- **⚖️ Comparativa**: añade presupuestos, elige uno con el círculo; mientras decides manda la *estimación provisional*.
-- **Indicador de nube** (arriba dcha.): estado de guardado. **⟳ Refrescar** trae los cambios del otro.
+  .selbar{position:fixed;left:50%;bottom:16px;transform:translate(-50%,140%);width:calc(100% - 32px);max-width:560px;
+    background:var(--ink);color:var(--pearl);border-radius:18px;padding:13px 16px;display:flex;align-items:center;gap:12px;
+    box-shadow:0 12px 40px rgba(51,48,42,.28);transition:transform .3s cubic-bezier(.2,.8,.2,1);z-index:50}
+  .selbar.show{transform:translate(-50%,0)}
+  .selinfo{flex:1;line-height:1.2}
+  .selinfo .c{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:rgba(244,239,230,.6);font-weight:600}
+  .selinfo .s{font-family:'Fraunces',serif;font-size:22px;font-weight:500}
+  .selacts{display:flex;gap:8px}
+  .sb{border:none;border-radius:10px;padding:9px 13px;font-family:'Manrope';font-size:13px;font-weight:700;cursor:pointer}
+  .sb-buy{background:var(--hedge);color:#fff} .sb-buy:hover{background:var(--hedge-deep)}
+  .sb-clear{background:rgba(244,239,230,.15);color:var(--pearl)} .sb-clear:hover{background:rgba(244,239,230,.25)}
 
-## Notas
-- La clave anon es pública (normal en Supabase). Protege el acceso con un `BOARD_ID` difícil de adivinar y, si quieres, repositorio privado.
-- El estado se guarda completo: si dos personas editan a la vez, gana el último cambio.
+  @media(max-width:480px){
+    .summary{grid-template-columns:1fr 1fr} .scard.tot{grid-column:1/-1}
+    .row3{grid-template-columns:1fr 1fr} .row3 .field:first-child{grid-column:1/-1}
+    .row2{grid-template-columns:1fr}
+    .selinfo .s{font-size:19px} .sb{padding:9px 10px;font-size:12px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Eclectic Warm Modern · Las Palmas</div>
+    <h1>Presupuesto de <em>casa</em></h1>
+    <p class="sub">Artículos cerrados y comparativas con varios presupuestos. Mientras decides, manda tu estimación provisional; al elegir un presupuesto, entra el precio real.</p>
+  </header>
+
+  <div class="summary">
+    <div class="scard tot"><div class="lab">Coste final</div><div class="val" id="sTot">—</div></div>
+    <div class="scard buy"><div class="lab">Comprado</div><div class="val" id="sBuy">—</div></div>
+    <div class="scard pend"><div class="lab">Pendiente</div><div class="val" id="sPend">—</div></div>
+  </div>
+
+  <div class="budget">
+    <div class="budget-top">
+      <label for="budget">Presupuesto objetivo</label>
+      <div class="budget-input"><input type="number" id="budget" placeholder="0" min="0" step="100"><span>€</span></div>
+    </div>
+    <div class="bar"><div class="fb" id="fb"></div><div class="fp" id="fp"></div><div class="fe" id="fe"></div></div>
+    <div class="bar-meta">
+      <span id="bmLeft"></span>
+      <span id="bmRest">—</span>
+    </div>
+  </div>
+
+  <div class="add">
+    <h2>Añadir al presupuesto</h2>
+    <div class="modeseg" id="modeseg">
+      <button data-m="item" class="on">Artículo</button>
+      <button data-m="comp">Comparativa (varios presup.)</button>
+    </div>
+    <div class="grid">
+      <div class="field"><label id="lblName">Qué es</label><input type="text" id="f-name" placeholder="Ej. Cafetera, horno, reforma baño…"></div>
+      <div class="row2">
+        <div class="field"><label>Categoría</label>
+          <select id="f-cat">
+            <option>Mueble</option><option>Electrodoméstico</option><option>Electrónica</option>
+            <option>Decoración</option><option>Reforma</option><option>Otros</option>
+          </select>
+        </div>
+        <div class="field"><label>Fase</label>
+          <select id="f-phase">
+            <option>Fase 1</option><option>Fase 2</option><option>Fase 3</option><option>Sin asignar</option>
+          </select>
+        </div>
+      </div>
+      <div class="row3" id="row-item">
+        <div class="field"><label>PVP (ud)</label><input type="number" id="f-price" placeholder="0" min="0" step="1"></div>
+        <div class="field"><label>Cant.</label><input type="number" id="f-qty" value="1" min="1" step="1"></div>
+        <div class="field"><label>Dto. %</label><input type="number" id="f-disc" placeholder="0" min="0" max="100" step="1"></div>
+      </div>
+      <div class="field" id="row-comp" style="display:none"><label>Estimación provisional (€)</label><input type="number" id="f-prov" placeholder="0" min="0" step="100"></div>
+      <button class="btn-add" id="addBtn">＋ Añadir</button>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <button class="tbtn" id="selToggle">🛒 Modo selección</button>
+    <button class="tbtn" id="refreshBtn">⟳ Refrescar</button>
+    <span class="cloud" id="cloud">—</span>
+    <span class="hint" id="selHint" style="display:none">Toca los artículos que vas a comprar ahora</span>
+  </div>
+
+  <div id="phases"></div>
+  <footer>⚖️ = comparativa con presupuestos · Pulsa el círculo para elegir uno · Se guarda en este dispositivo 🌿</footer>
+</div>
+
+<div class="selbar" id="selbar">
+  <div class="selinfo"><div class="c" id="selCount">0 artículos</div><div class="s" id="selSum">0 €</div></div>
+  <div class="selacts">
+    <button class="sb sb-buy" id="selBuy">Marcar comprados</button>
+    <button class="sb sb-clear" id="selClear">Limpiar</button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* ===== CONFIG SUPABASE — rellena estas dos líneas y sube a GitHub ===== */
+const SUPABASE_URL      = "https://ouaswrvmdtdrhgpjjqkj.supabase.co";   // p.ej. https://abcd1234.supabase.co
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im91YXN3cnZtZHRkcmhncGpqcWtqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg5MjY3MzYsImV4cCI6MjA5NDUwMjczNn0.V0ITQYx6e8qvLro85C51akG0y7dcwCECNS2zHbJWqJw";       // la clave "anon public" (Project Settings → API)
+const BOARD_ID = "casa-3210u-d93uc-32epp";   // cámbialo por algo difícil de adivinar si quieres más privacidad
+/* ====================================================================== */
+const cfgOK = !/^PEGA_AQUI/.test(SUPABASE_URL) && !/^PEGA_AQUI/.test(SUPABASE_ANON_KEY);
+let sb=null; try{ if(cfgOK && window.supabase) sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY); }catch(e){}
+let applyingRemote=false, saveTimer=null;
+function setCloud(t,c){const el=document.getElementById('cloud');if(el){el.textContent=t;el.className='cloud '+(c||'');}}
+function normalizeItems(){items.forEach(it=>{ if(!it.type)it.type='item'; if(it.type==='item'&&it.disc==null)it.disc=0; if(it.type==='comp'){it.quotes=it.quotes||[];it.prov=it.prov||0;if(it.chosen===undefined)it.chosen=null;} });}
+
+const PHASE_ORDER=["Fase 1","Fase 2","Fase 3","Sin asignar"];
+const PHASE_COLOR={"Fase 1":"var(--hedge)","Fase 2":"var(--spice)","Fase 3":"var(--wood)","Sin asignar":"var(--slate)"};
+const CAT_COLOR={"Mueble":"var(--wood)","Electrodoméstico":"var(--hedge)","Electrónica":"var(--slate)","Decoración":"var(--rose)","Reforma":"var(--spice)","Otros":"var(--ink-soft)"};
+
+let items=[]; let budget=0; let selMode=false; let selected=new Set(); let addMode='item';
+
+const SEED=[
+  {id:uid(),type:'item',name:"TONSTAD cama con almacenaje + somier LÖNSET (chapa roble, 160×200)",cat:"Mueble",phase:"Fase 1",price:629,qty:1,disc:15,bought:false},
+  {id:uid(),type:'item',name:"VÅGSTRANDA colchón muelles ensacados, extra firme (160×200)",cat:"Mueble",phase:"Fase 1",price:499,qty:1,disc:15,bought:false},
+  {id:uid(),type:'item',name:"TONSTAD mesita de noche (chapa roble, 40×40×59)",cat:"Mueble",phase:"Fase 1",price:119,qty:2,disc:15,bought:false},
+  {id:uid(),type:'item',name:"JYSK MARSTRAND mesa redonda extensible (roble natural)",cat:"Mueble",phase:"Fase 2",price:325,qty:1,disc:0,bought:false},
+  {id:uid(),type:'item',name:"LG OLED G5 77\" (OLED77G55LW)",cat:"Electrónica",phase:"Fase 1",price:1689.77,qty:1,disc:0,bought:true},
+  {id:uid(),type:'comp',name:"Reforma baño principal",cat:"Reforma",phase:"Fase 2",prov:0,chosen:null,bought:false,quotes:[]},
+];
+
+function uid(){return Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-3)}
+function eur(n){return new Intl.NumberFormat('es-ES',{minimumFractionDigits:0,maximumFractionDigits:2}).format(n)+" €"}
+function uFinal(p,d){return p*(1-(d||0)/100)}
+function itemFinal(it){return uFinal(it.price,it.disc)*it.qty}
+function chosenQuote(c){return c.chosen?c.quotes.find(q=>q.qid===c.chosen):null}
+
+async function load(){
+  if(!sb){ items=SEED.slice(); normalizeItems(); if(budget)document.getElementById('budget').value=budget;
+    setCloud(cfgOK?'sin conexión (local)':'configura Supabase','warn'); render(); return; }
+  setCloud('cargando…','');
+  try{
+    const {data,error}=await sb.from('house_budget').select('data').eq('id',BOARD_ID).maybeSingle();
+    if(error)throw error;
+    if(data&&data.data&&Array.isArray(data.data.items)){ items=data.data.items; budget=Number(data.data.budget)||0; }
+    else { items=SEED.slice(); budget=0; }
+    normalizeItems();
+    if(budget)document.getElementById('budget').value=budget;
+    setCloud('en la nube ✓','ok'); render(); subscribe();
+    if(!data)await doSave();
+  }catch(e){ items=SEED.slice(); normalizeItems(); render(); setCloud('error de conexión','warn'); }
+}
+async function doSave(){
+  if(!sb)return;
+  setCloud('guardando…','');
+  try{
+    const {error}=await sb.from('house_budget').upsert({id:BOARD_ID,data:{items,budget},updated_at:new Date().toISOString()});
+    if(error)throw error; setCloud('en la nube ✓','ok');
+  }catch(e){ setCloud('error al guardar','warn'); }
+}
+function scheduleSave(){ if(applyingRemote)return; clearTimeout(saveTimer); saveTimer=setTimeout(doSave,400); }
+async function saveItems(){ scheduleSave(); }
+async function saveBudget(){ scheduleSave(); }
+function applyRemote(d){
+  if(!d||!Array.isArray(d.items))return;
+  applyingRemote=true; items=d.items; budget=Number(d.budget)||0; normalizeItems();
+  document.getElementById('budget').value=budget||''; render(); applyingRemote=false;
+}
+function subscribe(){
+  if(!sb)return;
+  try{
+    sb.channel('house_'+BOARD_ID)
+      .on('postgres_changes',{event:'*',schema:'public',table:'house_budget',filter:'id=eq.'+BOARD_ID},
+        p=>{ if(p.new&&p.new.data){ applyRemote(p.new.data); setCloud('actualizado ✓','ok'); } })
+      .subscribe();
+  }catch(e){}
+}
+async function pull(){
+  if(!sb)return; setCloud('actualizando…','');
+  try{ const {data}=await sb.from('house_budget').select('data').eq('id',BOARD_ID).maybeSingle();
+    if(data&&data.data)applyRemote(data.data); setCloud('en la nube ✓','ok');
+  }catch(e){ setCloud('error de conexión','warn'); }
+}
+document.addEventListener('visibilitychange',()=>{ if(!document.hidden)pull(); });
+
+function entryCommitted(it){ // gasto real comprometido (lo elegido/cerrado)
+  if(it.type==='item')return itemFinal(it);
+  const q=chosenQuote(it); return q?uFinal(q.price,q.disc):0;
+}
+function entryEstimate(it){ if(it.type==='comp'&&!it.chosen)return it.prov||0; return 0; }
+function entryGrand(it){ return entryCommitted(it)+entryEstimate(it); }
+function entryBought(it){
+  if(it.type==='item')return it.bought?itemFinal(it):0;
+  const q=chosenQuote(it); return (q&&it.bought)?uFinal(q.price,q.disc):0;
+}
+function entrySave(it){
+  if(it.type==='item')return it.price*it.qty-itemFinal(it);
+  const q=chosenQuote(it); return q?(q.price-uFinal(q.price,q.disc)):0;
+}
+
+function totals(){
+  let committed=0,estimate=0,bought=0,save=0;
+  items.forEach(it=>{committed+=entryCommitted(it);estimate+=entryEstimate(it);bought+=entryBought(it);save+=entrySave(it);});
+  const grand=committed+estimate;
+  return {committed,estimate,bought,save,grand,pend:grand-bought};
+}
+
+function renderSelbar(){
+  const bar=document.getElementById('selbar');let sum=0,n=0;
+  selected.forEach(id=>{const it=items.find(x=>x.id===id);if(it&&it.type==='item'){sum+=itemFinal(it);n++;}});
+  document.getElementById('selCount').textContent=n+(n===1?' artículo':' artículos');
+  document.getElementById('selSum').textContent=eur(sum);
+  document.getElementById('selBuy').style.display=n>0?'':'none';
+  bar.classList.toggle('show',selMode&&n>0);
+}
+
+function render(){
+  const t=totals();
+  document.getElementById('sTot').textContent=eur(t.grand);
+  document.getElementById('sBuy').textContent=eur(t.bought);
+  document.getElementById('sPend').textContent=eur(t.pend);
+
+  const base=budget>0?budget:(t.grand>0?t.grand:1);
+  const wB=Math.min(100,t.bought/base*100);
+  const wP=Math.min(100-wB,(t.committed-t.bought)/base*100);
+  const wE=Math.min(100-wB-wP,t.estimate/base*100);
+  document.getElementById('fb').style.cssText='width:'+wB+'%;left:0';
+  document.getElementById('fp').style.cssText='width:'+wP+'%;left:'+wB+'%';
+  document.getElementById('fe').style.cssText='width:'+wE+'%;left:'+(wB+wP)+'%';
+
+  let left='Aceptado: <b>'+eur(t.committed)+'</b>';
+  if(t.estimate>0)left+=' · Por decidir: <span class="est-note">'+eur(t.estimate)+'</span>';
+  if(t.save>0)left+=' · <span class="save-note">ahorras '+eur(t.save)+'</span>';
+  document.getElementById('bmLeft').innerHTML=left;
+  const rEl=document.getElementById('bmRest');
+  if(budget>0){const rest=budget-t.grand;rEl.innerHTML=rest>=0?'Margen: <b>'+eur(rest)+'</b>':'<span class="over">Te pasas '+eur(Math.abs(rest))+'</span>';}
+  else rEl.innerHTML='Sin objetivo fijado';
+
+  const cont=document.getElementById('phases');cont.innerHTML='';
+  if(items.length===0){cont.innerHTML='<div class="empty">Aún no hay nada. Añade lo primero arriba ☝️</div>';renderSelbar();return;}
+  const byP={};items.forEach(it=>{(byP[it.phase]=byP[it.phase]||[]).push(it);});
+  const phases=Object.keys(byP).sort((a,b)=>PHASE_ORDER.indexOf(a)-PHASE_ORDER.indexOf(b));
+
+  phases.forEach(ph=>{
+    const list=byP[ph];
+    const pTot=list.reduce((s,it)=>s+entryGrand(it),0);
+    const pBuy=list.reduce((s,it)=>s+entryBought(it),0);
+    const num=ph.replace('Fase ','').replace('Sin asignar','·');
+    const sec=document.createElement('div');sec.className='phase';
+    sec.innerHTML='<div class="phase-head"><span class="pbadge" style="background:'+PHASE_COLOR[ph]+'">'+num+'</span>'+
+      '<h3>'+ph+'</h3><div class="pt"><div class="a">'+eur(pTot)+'</div><div class="b">'+eur(pBuy)+' comprado</div></div></div>';
+    list.forEach(it=>{ sec.appendChild(it.type==='comp'?renderComp(it):renderItem(it)); });
+    cont.appendChild(sec);
+  });
+  renderSelbar();
+}
+
+function renderItem(it){
+  const fS=itemFinal(it),pvpSub=it.price*it.qty;
+  const qtyTxt=it.qty>1?('<span class="qty">'+it.qty+' × '+eur(it.price)+'</span>'):'';
+  const priceHtml=(it.disc>0)?(eur(fS)+'<span class="pvp">'+eur(pvpSub)+'</span>'):eur(fS);
+  const el=document.createElement('div');
+  el.className='item'+(it.bought?' bought':'')+(selected.has(it.id)?' sel':'');el.dataset.id=it.id;
+  el.innerHTML='<div class="chk'+(it.bought?' on':'')+'" data-act="buy" data-id="'+it.id+'"></div>'+
+    '<div class="info"><div class="nm">'+escapeHtml(it.name)+'</div>'+
+    '<div class="meta"><span class="tag" style="background:'+CAT_COLOR[it.cat]+'">'+it.cat+'</span>'+qtyTxt+
+    '<span class="disc-wrap">Dto. <input class="disc" type="number" min="0" max="100" step="1" value="'+(it.disc||0)+'" data-id="'+it.id+'">%</span></div></div>'+
+    '<div class="price">'+priceHtml+'</div>'+
+    '<button class="icon" title="Eliminar" data-act="del" data-id="'+it.id+'">✕</button>';
+  return el;
+}
+
+function renderComp(c){
+  const q=chosenQuote(c);
+  const st=q?('Elegido: '+(q.who||'—')):((c.quotes.length||'sin')+' presup. · por decidir');
+  const el=document.createElement('div');el.className='comp';el.dataset.cid=c.id;
+  let html='<div class="comp-head"><span class="ic">⚖️</span>'+
+    '<input class="comp-name" value="'+escapeAttr(c.name)+'" data-cid="'+c.id+'">'+
+    '<span class="st">'+st+'</span>'+
+    '<button class="icon" title="Eliminar comparativa" data-act="delcomp" data-id="'+c.id+'">✕</button></div>'+
+    '<div class="comp-tags"><span class="tag" style="background:'+CAT_COLOR[c.cat]+'">'+c.cat+'</span></div>';
+  if(!c.chosen){
+    html+='<div class="prov"><span>Estimación provisional (cuenta en el total)</span>'+
+      '<input type="number" class="prov-in" min="0" step="50" value="'+(c.prov||0)+'" data-cid="'+c.id+'"></div>';
+  }
+  c.quotes.forEach(qq=>{
+    const fin=uFinal(qq.price,qq.disc);
+    const isCh=c.chosen===qq.qid;
+    const cls='quote'+(isCh?' chosen':'')+(c.chosen&&!isCh?' dim':'');
+    html+='<div class="'+cls+'" data-qid="'+qq.qid+'">'+
+      '<span class="radio'+(isCh?' on':'')+'" data-act="electq" data-cid="'+c.id+'" data-qid="'+qq.qid+'"></span>'+
+      '<div class="qn">'+
+        '<input class="qwho" placeholder="Proveedor / opción" value="'+escapeAttr(qq.who||'')+'" data-cid="'+c.id+'" data-qid="'+qq.qid+'">'+
+        '<div class="qrow"><input type="number" class="qprice" min="0" step="1" value="'+qq.price+'" data-cid="'+c.id+'" data-qid="'+qq.qid+'"><span>€</span>'+
+          '<input type="number" class="pct qdisc" min="0" max="100" step="1" value="'+(qq.disc||0)+'" data-cid="'+c.id+'" data-qid="'+qq.qid+'"><span>% dto</span></div>'+
+        '<input class="qnote" placeholder="nota (opcional)" value="'+escapeAttr(qq.note||'')+'" data-cid="'+c.id+'" data-qid="'+qq.qid+'">'+
+      '</div>'+
+      '<div class="qright"><span class="qfinal">'+eur(fin)+'</span>'+
+        '<button class="icon" title="Borrar presupuesto" data-act="delq" data-cid="'+c.id+'" data-qid="'+qq.qid+'">✕</button></div>'+
+    '</div>';
+  });
+  html+='<button class="addq" data-act="addq" data-id="'+c.id+'">＋ Añadir presupuesto</button>';
+  if(c.chosen){
+    html+='<div class="buyrow"><span class="chk'+(c.bought?' on':'')+'" data-act="buycomp" data-id="'+c.id+'"></span>'+(c.bought?'Reforma/compra ya pagada':'Marcar como comprado/pagado')+'</div>';
+  }
+  el.innerHTML=html;
+  return el;
+}
+
+function escapeHtml(s){return (s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function escapeAttr(s){return (s||'').replace(/"/g,'&quot;')}
+
+/* ----- add ----- */
+document.getElementById('modeseg').addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b)return;
+  addMode=b.dataset.m;
+  [...document.querySelectorAll('#modeseg button')].forEach(x=>x.classList.toggle('on',x===b));
+  document.getElementById('row-item').style.display=addMode==='item'?'':'none';
+  document.getElementById('row-comp').style.display=addMode==='comp'?'':'none';
+  document.getElementById('lblName').textContent=addMode==='comp'?'Nombre de la decisión':'Qué es';
+  document.getElementById('addBtn').textContent=addMode==='comp'?'＋ Crear comparativa':'＋ Añadir';
+});
+document.getElementById('addBtn').addEventListener('click',async()=>{
+  const name=document.getElementById('f-name').value.trim();
+  if(!name){document.getElementById('f-name').focus();return;}
+  const cat=document.getElementById('f-cat').value, phase=document.getElementById('f-phase').value;
+  if(addMode==='comp'){
+    const prov=Math.max(0,parseFloat(document.getElementById('f-prov').value)||0);
+    items.push({id:uid(),type:'comp',name,cat,phase,prov,chosen:null,bought:false,quotes:[]});
+    document.getElementById('f-prov').value='';
+  }else{
+    const price=parseFloat(document.getElementById('f-price').value)||0;
+    const qty=Math.max(1,parseInt(document.getElementById('f-qty').value)||1);
+    const disc=Math.min(100,Math.max(0,parseFloat(document.getElementById('f-disc').value)||0));
+    items.push({id:uid(),type:'item',name,cat,phase,price,qty,disc,bought:false});
+    document.getElementById('f-price').value='';document.getElementById('f-qty').value='1';document.getElementById('f-disc').value='';
+  }
+  document.getElementById('f-name').value='';
+  await saveItems();render();
+});
+
+/* ----- list clicks ----- */
+document.getElementById('phases').addEventListener('click',async e=>{
+  if(e.target.closest('input'))return;
+  const actEl=e.target.closest('[data-act]');
+  if(actEl){
+    const act=actEl.dataset.act, id=actEl.dataset.id, cid=actEl.dataset.cid, qid=actEl.dataset.qid;
+    if(act==='buy'){const it=items.find(x=>x.id===id);if(it)it.bought=!it.bought;}
+    else if(act==='del'){items=items.filter(x=>x.id!==id);selected.delete(id);}
+    else if(act==='delcomp'){items=items.filter(x=>x.id!==id);}
+    else if(act==='buycomp'){const c=items.find(x=>x.id===id);if(c)c.bought=!c.bought;}
+    else if(act==='addq'){const c=items.find(x=>x.id===id);if(c)c.quotes.push({qid:uid(),who:'',price:0,disc:0,note:''});}
+    else if(act==='electq'){const c=items.find(x=>x.id===cid);if(c){c.chosen=(c.chosen===qid)?null:qid;if(!c.chosen)c.bought=false;}}
+    else if(act==='delq'){const c=items.find(x=>x.id===cid);if(c){c.quotes=c.quotes.filter(q=>q.qid!==qid);if(c.chosen===qid){c.chosen=null;c.bought=false;}}}
+    await saveItems();render();return;
+  }
+  if(selMode){const row=e.target.closest('.item');if(!row)return;const id=row.dataset.id;
+    if(selected.has(id))selected.delete(id);else selected.add(id);render();}
+});
+
+/* ----- field edits ----- */
+document.getElementById('phases').addEventListener('change',async e=>{
+  const el=e.target;
+  if(el.classList.contains('disc')){const it=items.find(x=>x.id===el.dataset.id);if(it)it.disc=clampPct(el.value);}
+  else if(el.classList.contains('prov-in')){const c=items.find(x=>x.id===el.dataset.cid);if(c)c.prov=Math.max(0,parseFloat(el.value)||0);}
+  else if(el.classList.contains('comp-name')){const c=items.find(x=>x.id===el.dataset.cid);if(c)c.name=el.value.trim()||c.name;}
+  else if(el.classList.contains('qwho')||el.classList.contains('qnote')||el.classList.contains('qprice')||el.classList.contains('qdisc')){
+    const c=items.find(x=>x.id===el.dataset.cid);if(!c)return;const q=c.quotes.find(x=>x.qid===el.dataset.qid);if(!q)return;
+    if(el.classList.contains('qwho'))q.who=el.value;
+    else if(el.classList.contains('qnote'))q.note=el.value;
+    else if(el.classList.contains('qprice'))q.price=Math.max(0,parseFloat(el.value)||0);
+    else if(el.classList.contains('qdisc'))q.disc=clampPct(el.value);
+  } else return;
+  await saveItems();render();
+});
+function clampPct(v){return Math.min(100,Math.max(0,parseFloat(v)||0))}
+
+/* ----- selección ----- */
+document.getElementById('selToggle').addEventListener('click',()=>{
+  selMode=!selMode;if(!selMode)selected.clear();
+  const b=document.getElementById('selToggle');
+  b.classList.toggle('on',selMode);b.textContent=selMode?'✓ Selección activa':'🛒 Modo selección';
+  document.getElementById('selHint').style.display=selMode?'':'none';
+  document.body.classList.toggle('selmode',selMode);render();
+});
+document.getElementById('selClear').addEventListener('click',()=>{selected.clear();render();});
+document.getElementById('refreshBtn').addEventListener('click',()=>pull());
+document.getElementById('selBuy').addEventListener('click',async()=>{
+  selected.forEach(id=>{const it=items.find(x=>x.id===id);if(it&&it.type==='item')it.bought=true;});
+  selected.clear();await saveItems();render();
+});
+document.getElementById('budget').addEventListener('input',async e=>{budget=parseFloat(e.target.value)||0;await saveBudget();render();});
+load();
+</script>
+</body>
+</html>
